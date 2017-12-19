@@ -17,22 +17,27 @@ import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 
 @Autonomous(name="Generic Autonomous", group="Pushbot")
 @SuppressWarnings("WeakerAccess")
-public class genericAutonomous extends LinearOpMode {
+public class KP_RedLeft_Autonomous extends LinearOpMode {
     /* Declare OpMode members. */
+    Drive myDrive = new Drive();
+
     HardwarePushbot robot   = new HardwarePushbot();   // Use a Pushbot's hardware
     static final double LEFTCLAMPED = 45;
     static final double LEFTUNCLAMPED = -5;
     static final double RIGHTCLAMPED = 5;
     static final double RIGHTUNCLAMPED = -45;
-    static final int CLAMPED = 1;
-    static final int UNCLAMPED = 2;
+    static final int CL = 1;
+    static final int UC = -1;
+    static final float driveMax = 1;
+    static final float driveMin = -1;
+    static final float riserMax = 1;
+    static final float riserMin = -1;
+    static final double riserTarget = 0;
 
-    final long SENSORPERIOD = 50;
-    final long ENCODERPERIOD = 50;
-    final long SERVOPERIOD = 50;
-    final long NAVPERIOD = 50;
-    final long MOTORPERIOD = 50;
-    final long TELEMETRYPERIOD = 1000;
+    static final int  liftMaxTime = 600;
+    static final int  driveMaxTime = 2000;   //Crude two seconds, eventually use encoders
+    static final long FRAME_PERIOD = 50;
+    static final long TELEMETRYPERIOD = 1000;
 
     // states for the NAV switch statement
     final int CLM = 0;
@@ -64,16 +69,10 @@ public class genericAutonomous extends LinearOpMode {
          * The init() method of the hardware class does all the work here
          */
         robot.init(hardwareMap);
-        // Send telemetry message to signify robot waiting;
         telemetry.addData("Status", "Resetting Encoders");    //
         telemetry.update();
-        int[] thisCase =   {CLM,  LFT, TRN, STR,  CLM, WAIT};
-        int[] clampArray=    {1,   0,   0,  -1,    0,    0,  0};
-        double[] stateDur =  {500, 0,   0,   0,    0,  500,  0};
-        int[] TurnArray =    {0,   0,  45,   0,    2,    0,  0};
-        int[] TurnPower =    {0,   0,  40,   0,  -30,    0,  0};
-        float[] StraightPwr= {25,  0,   0,  30,    0,    0,  0};
-        int[] StraightDist=  {10,  0,   0,  50,    0,    0,  0};
+        Drive myDrive = new Drive();
+        botMotors dPwr = new botMotors();
 
         long CurrentTime = System.currentTimeMillis();
 
@@ -82,18 +81,17 @@ public class genericAutonomous extends LinearOpMode {
         long LastServo = CurrentTime + 10;
         long LastNav = CurrentTime + 15;
         long LastMotor = CurrentTime + 20;
-        long LastController = CurrentTime + 7;
         long LastTelemetry = CurrentTime + 17;
 
-        long liftDuration = 0;
-        long liftOffDuration = 0;
 
         double leftClamp_Cmd = LEFTUNCLAMPED;
         double rightClamp_Cmd = RIGHTUNCLAMPED;
         double stageTimer=0;
 
-        float startTime = 0;
+
         int startHeading = 0;
+        int currentHeading = 0;
+
         double startPos = 0;
         float leftDriveCmd = 0;
         float rightDriveCmd = 0;
@@ -104,16 +102,19 @@ public class genericAutonomous extends LinearOpMode {
 
         ElapsedTime runtime = new ElapsedTime();
         //A Timing System By Katherine Jeffrey,and Alexis
-        // long currentThreadTimeMillis (0);
-        //
-        //int riserZero = robot.pulleyDrive.getCurrentPosition();
-
-        // Wait for the game to start (driver presses PLAY)
-
+       // Wait for the game to start (driver presses PLAY)
         waitForStart();
         runtime.reset();
+        int[] thisCase =   {  CLM,  LFT,  TRN,  STR,  CLM,  TRN, WAIT};
+        int[] clampArray=    { CL,    0,    0,    0,   UC,    0,    0};
+        double[] stateDur =  {500, 2000, 3000, 1000, 1000, 2000,  500};
+        int[] TurnArray =    {  0,    0,   45,    0,    2,    0,    0};
+        int[] TurnPower =    {  0,    0,   40,    0,  -30,    0,    0};
+        float[] StraightPwr= { 25,    0,    0,   30,    0,    0,    0};
+        int[] StraightDist=  { 10,    0,    0,   50,    0,    0,    0};
+
   /* ***********************************************************************************************
-   *****************************                CODE          ************************************
+   *****************************       OpMode    CODE          ************************************
    ************************************************************************************************/
 
 
@@ -131,8 +132,9 @@ public class genericAutonomous extends LinearOpMode {
              *        INPUTS: Raw Sensor Values
              *       OUTPUTS: parameters containing sensor values*
              ****************************************************/
-            if (CurrentTime - LastSensor > SENSORPERIOD) {
+            if (CurrentTime - LastSensor > FRAME_PERIOD) {
                 LastSensor = CurrentTime;
+
                 // no sensors at this time.  If we add some, change this comment.
             }
 
@@ -140,7 +142,7 @@ public class genericAutonomous extends LinearOpMode {
             /* ***************************************************
              *                ENCODERS                          *
              ****************************************************/
-            if (CurrentTime - LastEncoderRead > ENCODERPERIOD) {
+            if (CurrentTime - LastEncoderRead > FRAME_PERIOD) {
                 LastEncoderRead = CurrentTime;
                 // We want to READ the Encoders here
                 //    ONLY set the motors in motion in ONE place.
@@ -163,30 +165,20 @@ public class genericAutonomous extends LinearOpMode {
              *               Sensor Values (as needed)
              *      Outputs: Servo and Motor position commands
              ****************************************************/
-            if (CurrentTime - LastNav > NAVPERIOD) {
+            if (CurrentTime - LastNav > FRAME_PERIOD) {
                 LastNav = CurrentTime;
                 boolean stageComplete = false;
                 // init drive min and max to default values.  We'll reset them to other numbers
                 // if conditions demand it.
-                float driveMax = 1;
-                float driveMin = -1;
-                float riserMax = 1;
-                float riserMin = -1;
-                double riserTarget = 0;
+                double maxT = stateDur[CurrentAutoState];
 
-                int    clampMaxTime = 500;
-                int    liftMaxTime = 600;
-                int    driveMaxTime = 2000;   //Crude two seconds, eventually use encoders
-                int    driveBackMaxTime = 200;
-                int    driveForwardLittleTime = 1000;
-                int    driveBackLittleTime = 250;
-                stageTimer += NAVPERIOD;
+                stageTimer += FRAME_PERIOD;
 
                 switch ( thisCase[CurrentAutoState] ) {
                     case CLM:  //Close clamp on cube
                         leftClamp_Cmd = LEFTUNCLAMPED;
                         rightClamp_Cmd = RIGHTUNCLAMPED;
-                        if (clampArray[CurrentAutoState] == CLAMPED) {
+                        if (clampArray[CurrentAutoState] == CL) {
                             leftClamp_Cmd = LEFTCLAMPED;
                             rightClamp_Cmd = RIGHTCLAMPED;
                         }
@@ -200,13 +192,15 @@ public class genericAutonomous extends LinearOpMode {
                             riserCmd = 0;
                             stageComplete = true;
                         }
-                        stageTimer += NAVPERIOD;
                         break;
                     case STR:   // Drive forward
-                        leftDriveCmd = driveMax;
-                        rightDriveCmd = driveMax;
-                        if (stageTimer > driveMaxTime) {
-                            leftDriveCmd=0;
+                        double traveled = Math.abs(startPos - currentPos);
+                        double goal = StraightDist[CurrentAutoState];
+                        float pwr  = StraightPwr[CurrentAutoState];
+                        dPwr = myDrive.Fwd5(traveled, goal, pwr, stageTimer, maxT);
+                        leftDriveCmd = dPwr.leftFront;
+                        rightDriveCmd = dPwr.rightFront;
+                        if (dPwr.status < 0) {
                             rightDriveCmd=0;
                             stageComplete = true;
                         }
@@ -232,9 +226,9 @@ public class genericAutonomous extends LinearOpMode {
                 if (stageComplete) {
                     startPos = currentPos;
                     startHeading = currentHeading;
-                    startTime = CurrentTime;
                     stageTimer= 0;
                     CurrentAutoState++;
+
                 }
                 // mapping inputs to servo command
 
@@ -261,7 +255,7 @@ public class genericAutonomous extends LinearOpMode {
              *                        rightClamp position command *
              *                Outputs: Physical write to servo interface.
              ****************************************************/
-            if (CurrentTime - LastServo > SERVOPERIOD) {
+            if (CurrentTime - LastServo > FRAME_PERIOD) {
                 LastServo = CurrentTime;
 
                 // Move both servos to new position.
@@ -275,7 +269,7 @@ public class genericAutonomous extends LinearOpMode {
              *       Inputs:  Motor power commands
              *       Outputs: Physical interface to the motors
              ****************************************************/
-            if (CurrentTime - LastMotor > MOTORPERIOD) {
+            if (CurrentTime - LastMotor > FRAME_PERIOD) {
                 LastMotor = CurrentTime;
                 // Yes, we'll set the power each time, even if it's zero.
                 // this way we don't accidentally leave it somewhere.  Just simpler this way.
