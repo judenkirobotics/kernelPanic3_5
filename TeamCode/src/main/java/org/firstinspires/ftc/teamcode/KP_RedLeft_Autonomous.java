@@ -9,6 +9,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -19,7 +20,7 @@ import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 @SuppressWarnings("WeakerAccess")
 public class KP_RedLeft_Autonomous extends LinearOpMode {
     /* Declare OpMode members. */
-    Drive myDrive = new Drive();
+    //Drive myDrive = new Drive(DCMotor mLeft,DcMotor mRight);
 
     HardwarePushbot robot   = new HardwarePushbot();   // Use a Pushbot's hardware
     static final double LEFTCLAMPED = 45;
@@ -71,7 +72,7 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
         robot.init(hardwareMap);
         telemetry.addData("Status", "Resetting Encoders");    //
         telemetry.update();
-        Drive myDrive = new Drive();
+        Drive2 myDrive = new Drive2();
         botMotors dPwr = new botMotors();
 
         long CurrentTime = System.currentTimeMillis();
@@ -197,7 +198,7 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
                         double traveled = Math.abs(startPos - currentPos);
                         double goal = StraightDist[CurrentAutoState];
                         float pwr  = StraightPwr[CurrentAutoState];
-                        dPwr = myDrive.Fwd5(traveled, goal, pwr, stageTimer, maxT);
+                        dPwr = myDrive.fwd6(traveled, goal, pwr, stageTimer, maxT);
                         leftDriveCmd = dPwr.leftFront;
                         rightDriveCmd = dPwr.rightFront;
                         if (dPwr.status < 0) {
