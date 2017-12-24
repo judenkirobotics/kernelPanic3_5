@@ -8,8 +8,23 @@ public class Drive2 {
     public static final float MAX_TURN_TIME = (float)4000;
     public static final float BUMP_TIME     = (float)2000;
 
-    public botMotors fwd6(){
+    public botMotors fwd6(float pwr, long goal, long stageTime){
         botMotors mPower = new botMotors();
+        if (goal < stageTime){
+            mPower.leftFront = pwr;
+            mPower.rightFront = pwr;
+            mPower.leftRear = pwr;
+            mPower.rightRear = pwr;
+            mPower.status = -1;
+        }
+        else
+        {
+            mPower.leftFront = 0;
+            mPower.rightFront = 0;
+            mPower.leftRear = 0;
+            mPower.rightRear = 0;
+            mPower.status = 0;
+        }
         return mPower;
     }
     /***********************************************************

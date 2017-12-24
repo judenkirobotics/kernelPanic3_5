@@ -9,11 +9,8 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
-
-import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 
 
 @Autonomous(name="Generic Autonomous", group="Pushbot")
@@ -22,7 +19,7 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
     /* Declare OpMode members. */
     //Drive myDrive = new Drive(DCMotor mLeft,DcMotor mRight);
 
-    HardwarePushbot robot   = new HardwarePushbot();   // Use a Pushbot's hardware
+    hardwarePushBotKP robot   = new hardwarePushBotKP();   // Use a Pushbot's hardware
     static final double LEFTCLAMPED = 45;
     static final double LEFTUNCLAMPED = -5;
     static final double RIGHTCLAMPED = 5;
@@ -33,11 +30,9 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
     static final float driveMin = -1;
     static final float riserMax = 1;
     static final float riserMin = -1;
-    static final double riserTarget = 0;
 
     static final int  liftMaxTime = 600;
-    static final int  driveMaxTime = 2000;   //Crude two seconds, eventually use encoders
-    static final long FRAME_PERIOD = 50;
+    static final long MINOR_FRAME = 50;
     static final long TELEMETRYPERIOD = 1000;
 
     // states for the NAV switch statement
@@ -48,10 +43,10 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
     final int WAIT = 4;
 
     int CurrentAutoState = 0;
-    int rightMotorPos;
-    int lefMotorPos;
-    int riserMotorPos;
-
+    //int rightMotorPos;
+    //int lefMotorPos;
+    //int riserMotorPos;
+/*
     public boolean detectItem() {
         // presuming there will be a detect item here ... populate this code when we know that
         return true;
@@ -60,7 +55,7 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
         // presuming we will move a lever somehow.  Populate this method when that is known.
         return true;
     }
-
+*/
     @Override
 
     public void runOpMode() {
@@ -87,7 +82,7 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
 
         double leftClamp_Cmd = LEFTUNCLAMPED;
         double rightClamp_Cmd = RIGHTUNCLAMPED;
-        double stageTimer=0;
+        long stageTimer=0;
 
 
         int startHeading = 0;
@@ -112,7 +107,7 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
         int[] TurnArray =    {  0,    0,   45,    0,    2,    0,    0};
         int[] TurnPower =    {  0,    0,   40,    0,  -30,    0,    0};
         float[] StraightPwr= { 25,    0,    0,   30,    0,    0,    0};
-        int[] StraightDist=  { 10,    0,    0,   50,    0,    0,    0};
+        long[] StraightTime=  { 10,    0,    0,   50,    0,    0,    0};
 
   /* ***********************************************************************************************
    *****************************       OpMode    CODE          ************************************
@@ -133,9 +128,9 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
              *        INPUTS: Raw Sensor Values
              *       OUTPUTS: parameters containing sensor values*
              ****************************************************/
-            if (CurrentTime - LastSensor > FRAME_PERIOD) {
+            if (CurrentTime - LastSensor > MINOR_FRAME) {
                 LastSensor = CurrentTime;
-
+                currentHeading = robot.gyro.getHeading();
                 // no sensors at this time.  If we add some, change this comment.
             }
 
@@ -143,13 +138,13 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
             /* ***************************************************
              *                ENCODERS                          *
              ****************************************************/
-            if (CurrentTime - LastEncoderRead > FRAME_PERIOD) {
+            if (CurrentTime - LastEncoderRead > MINOR_FRAME) {
                 LastEncoderRead = CurrentTime;
                 // We want to READ the Encoders here
                 //    ONLY set the motors in motion in ONE place.
-                rightMotorPos = robot.rightDrive.getCurrentPosition();
-                lefMotorPos = robot.leftDrive.getCurrentPosition();
-                riserMotorPos = robot.pulleyDrive.getCurrentPosition();
+                //rightMotorPos = robot.rightDrive.getCurrentPosition();
+                //lefMotorPos = robot.leftDrive.getCurrentPosition();
+                //riserMotorPos = robot.liftMotor.getCurrentPosition();
             }
             /* **************************************************
              *                Controller INPUT                  *
@@ -166,14 +161,14 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
              *               Sensor Values (as needed)
              *      Outputs: Servo and Motor position commands
              ****************************************************/
-            if (CurrentTime - LastNav > FRAME_PERIOD) {
+            if (CurrentTime - LastNav > MINOR_FRAME) {
                 LastNav = CurrentTime;
                 boolean stageComplete = false;
                 // init drive min and max to default values.  We'll reset them to other numbers
                 // if conditions demand it.
                 double maxT = stateDur[CurrentAutoState];
 
-                stageTimer += FRAME_PERIOD;
+                stageTimer += MINOR_FRAME;
 
                 switch ( thisCase[CurrentAutoState] ) {
                     case CLM:  //Close clamp on cube
@@ -195,10 +190,9 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
                         }
                         break;
                     case STR:   // Drive forward
-                        double traveled = Math.abs(startPos - currentPos);
-                        double goal = StraightDist[CurrentAutoState];
+                        long goal = StraightTime[CurrentAutoState];
                         float pwr  = StraightPwr[CurrentAutoState];
-                        dPwr = myDrive.fwd6(traveled, goal, pwr, stageTimer, maxT);
+                        dPwr = myDrive.fwd6(pwr, goal, stageTimer);
                         leftDriveCmd = dPwr.leftFront;
                         rightDriveCmd = dPwr.rightFront;
                         if (dPwr.status < 0) {
@@ -225,7 +219,7 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
                         }
                 }
                 if (stageComplete) {
-                    startPos = currentPos;
+                    //startPos = currentPos;
                     startHeading = currentHeading;
                     stageTimer= 0;
                     CurrentAutoState++;
@@ -256,7 +250,7 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
              *                        rightClamp position command *
              *                Outputs: Physical write to servo interface.
              ****************************************************/
-            if (CurrentTime - LastServo > FRAME_PERIOD) {
+            if (CurrentTime - LastServo > MINOR_FRAME) {
                 LastServo = CurrentTime;
 
                 // Move both servos to new position.
@@ -270,7 +264,7 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
              *       Inputs:  Motor power commands
              *       Outputs: Physical interface to the motors
              ****************************************************/
-            if (CurrentTime - LastMotor > FRAME_PERIOD) {
+            if (CurrentTime - LastMotor > MINOR_FRAME) {
                 LastMotor = CurrentTime;
                 // Yes, we'll set the power each time, even if it's zero.
                 // this way we don't accidentally leave it somewhere.  Just simpler this way.
@@ -281,7 +275,7 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
                 robot.rightDrive.setPower(rightDriveCmd);
 
                 /* Lifter Motor Power   */
-                robot.pulleyDrive.setPower(riserCmd);
+                robot.liftMotor.setPower(riserCmd);
             }
 
 
