@@ -22,6 +22,7 @@ import com.qualcomm.robotcore.util.Range;
  */
 
 public class Drive {
+
     public static int prevHeading = 176;
     public static int newHeading = 178;
     private DcMotor[] leftMotors   = null;

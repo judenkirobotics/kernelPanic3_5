@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.util.Range;
 public class KP_DriverCmd_Mecanum extends LinearOpMode {
     /* Declare OpMode members. */
     hardwarePushBotKP robot = new hardwarePushBotKP();
+    Drive2 myDrive = new Drive2();
     //hardwarePushBotKP robot   = new hardwarePushBotKP();   // Use a Pushbot's hardware
     Gamepad g1 = new Gamepad();
     Gamepad g2 = new Gamepad();
@@ -53,12 +54,15 @@ public class KP_DriverCmd_Mecanum extends LinearOpMode {
 
         int g2_A_Counts = 0;
         int g2_DU_Counts = 0;
+        botMotors mPwr = new botMotors();
 
         double leftClamp_Cmd = robot.LEFTUNCLAMPED;
         double rightClamp_Cmd = robot.RIGHTUNCLAMPED;
 
         float leftDriveCmd = 0;
         float rightDriveCmd = 0;
+        float leftRearCmd = 0;
+        float rightRearCmd = 0;
         float riserCmd = 0;
 
         float turtleScaler = 1;  //Initially full power
@@ -196,12 +200,25 @@ public class KP_DriverCmd_Mecanum extends LinearOpMode {
                 g1.right_stick_y = (float) Math.pow((double) g1.left_stick_y, (double) 3);
                 g1.right_stick_y = g1.right_stick_y / turtleScaler;
 
+                if (g1.x)
+                {
+                    mPwr.leftFront = g1.left_stick_y;
+                    mPwr.rightFront = g1.right_stick_y;
+                    mPwr.leftRear = mPwr.leftFront;
+                    mPwr.rightRear = mPwr.rightFront;
+                }
+                else
+                {
+                    mPwr = myDrive.crab(g1);
+                }
                 // The ONLY place we set the motor power variables. Set them here, and
                 // we will never have to worry about which set is clobbering the other.
 
                 // motor commands: Clipped & clamped.
-                leftDriveCmd = Range.clip(g1.left_stick_y, DRIVEMIN, DRIVEMAX);
-                rightDriveCmd = Range.clip(g1.right_stick_y, DRIVEMIN, DRIVEMAX);
+                leftDriveCmd = Range.clip(mPwr.leftFront, DRIVEMIN, DRIVEMAX);
+                rightDriveCmd = Range.clip(mPwr.rightFront, DRIVEMIN, DRIVEMAX);
+                leftRearCmd = Range.clip(mPwr.leftRear, DRIVEMIN, DRIVEMAX);
+                rightRearCmd = Range.clip(mPwr.rightRear, DRIVEMIN, DRIVEMAX);
                 riserCmd = Range.clip(riserCmd, DRIVEMIN, DRIVEMAX);
             }                    // END NAVIGATION
 
@@ -230,6 +247,8 @@ public class KP_DriverCmd_Mecanum extends LinearOpMode {
                 // this way we don't accidentally leave it somewhere.  Just simpler this way.
                 robot.leftDrive.setPower(-1 * rightDriveCmd);
                 robot.rightDrive.setPower(-1 * leftDriveCmd);
+                robot.leftRear.setPower(-1*rightRearCmd);
+                robot.rightRear.setPower(-1*leftRearCmd);
                 robot.liftMotor.setPower(riserCmd);
             }
 
