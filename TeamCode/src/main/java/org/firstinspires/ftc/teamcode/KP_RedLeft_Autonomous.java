@@ -291,6 +291,12 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
                 telemetry.update();
             }
         }
+        //SAFE EXIT OF RUN OPMODE, stop motors, leave servos????
+        robot.leftDrive.setPower(0);
+        robot.rightDrive.setPower(0);
+        robot.leftRear.setPower(0);
+        robot.rightRear.setPower(0);
+        robot.liftMotor.setPower(0);
         telemetry.addData("Path", "Complete");
         telemetry.update();
     }

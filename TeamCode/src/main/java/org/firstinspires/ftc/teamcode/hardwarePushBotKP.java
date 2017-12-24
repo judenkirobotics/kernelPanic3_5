@@ -11,7 +11,6 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 //import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class hardwarePushBotKP {
-
     final double LEFTCLAMPED = 45;
     final double LEFTUNCLAMPED = -5;
     final double RIGHTCLAMPED = 5;
@@ -22,7 +21,6 @@ public class hardwarePushBotKP {
     final double LEFTTIGHTCLAMPED = 48;
     final double RIGHTTIGHTCLAMPED= -48;
     //static final double CLAMP_MOTION_TIME = 250;
-
     //rampMotor  = hwMap.get(DcMotor.class, "beltmotor");
     //loaderMotor= hwMap.get(DcMotor.class, "loadermotor");
 
@@ -35,6 +33,8 @@ public class hardwarePushBotKP {
     public DcMotor     leftDrive      = null;
     public DcMotor     rightDrive     = null;
     public DcMotor     liftMotor      = null;
+    public DcMotor     leftRear       = null;
+    public DcMotor     rightRear      = null;
 
     /* local OpMode members. */
     //private ElapsedTime period  = new ElapsedTime();
