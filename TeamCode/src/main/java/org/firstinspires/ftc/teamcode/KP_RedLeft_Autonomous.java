@@ -68,7 +68,7 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
         telemetry.addData("Status", "Resetting Encoders");    //
         telemetry.update();
         Drive2 myDrive = new Drive2();
-        botMotors dPwr = new botMotors();
+        botMotors dPwr;
 
         long CurrentTime = System.currentTimeMillis();
 
@@ -85,10 +85,9 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
         long stageTimer=0;
 
 
-        int startHeading = 0;
-        int currentHeading = 0;
+        //int startHeading = 0;
+        //int currentHeading = 0;
 
-        double startPos = 0;
         float leftDriveCmd = 0;
         float rightDriveCmd = 0;
         float riserCmd = 0;
@@ -104,8 +103,8 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
         int[] thisCase =   {  CLM,  LFT,  TRN,  STR,  CLM,  TRN, WAIT};
         int[] clampArray=    { CL,    0,    0,    0,   UC,    0,    0};
         double[] stateDur =  {500, 2000, 3000, 1000, 1000, 2000,  500};
-        int[] TurnArray =    {  0,    0,   45,    0,    2,    0,    0};
-        int[] TurnPower =    {  0,    0,   40,    0,  -30,    0,    0};
+        //int[] TurnArray =    {  0,    0,   45,    0,    2,    0,    0};
+        //int[] TurnPower =    {  0,    0,   40,    0,  -30,    0,    0};
         float[] StraightPwr= { 25,    0,    0,   30,    0,    0,    0};
         long[] StraightTime=  { 10,    0,    0,   50,    0,    0,    0};
 
@@ -130,7 +129,7 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
              ****************************************************/
             if (CurrentTime - LastSensor > MINOR_FRAME) {
                 LastSensor = CurrentTime;
-                currentHeading = robot.gyro.getHeading();
+                //currentHeading = robot.gyro.getHeading();
                 // no sensors at this time.  If we add some, change this comment.
             }
 
@@ -166,7 +165,7 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
                 boolean stageComplete = false;
                 // init drive min and max to default values.  We'll reset them to other numbers
                 // if conditions demand it.
-                double maxT = stateDur[CurrentAutoState];
+                //double maxT = stateDur[CurrentAutoState];
 
                 stageTimer += MINOR_FRAME;
 
@@ -220,7 +219,7 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
                 }
                 if (stageComplete) {
                     //startPos = currentPos;
-                    startHeading = currentHeading;
+                    //startHeading = currentHeading;
                     stageTimer= 0;
                     CurrentAutoState++;
 
@@ -233,9 +232,9 @@ public class KP_RedLeft_Autonomous extends LinearOpMode {
                 // Servo commands: Clipped and Clamped.
 
                 // motor commands: Clipped & clamped.
-                leftDriveCmd  = Range.clip((float)leftDriveCmd,         driveMin, driveMax);
-                rightDriveCmd = Range.clip((float)rightDriveCmd,         driveMin, driveMax);
-                riserCmd      = Range.clip((float)riserCmd, riserMin, riserMax);
+                leftDriveCmd  = Range.clip(leftDriveCmd,         driveMin, driveMax);
+                rightDriveCmd = Range.clip(rightDriveCmd,         driveMin, driveMax);
+                riserCmd      = Range.clip(riserCmd, riserMin, riserMax);
             }
             // END NAVIGATION
         /*   ^^^^^^^^^^^^^^^^  THIS SECTION IS MAPPING INPUTS TO OUTPUTS   ^^^^^^^^^^^^^^^

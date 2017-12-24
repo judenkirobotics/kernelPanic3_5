@@ -7,12 +7,8 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
-import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 @SuppressWarnings("WeakerAccess")
 @TeleOp(name = "KP Driver Cmd Mecanum", group = "k9Bot")
 
@@ -142,7 +138,8 @@ public class KP_DriverCmd_Mecanum extends LinearOpMode {
                 g2_A_Counts = Range.clip((gamepad2.a)? g2_A_Counts + 1 : g2_A_Counts - 1, 0,12);
                 g2.a = (g2_A_Counts >= 6);
 
-                g2_DU_Counts = Range.clip((gamepad2.dpad_up)? g2_DU_Counts + 1 : g2_DU_Counts - 1, 0,12);
+                g2_DU_Counts =
+                        Range.clip((gamepad2.dpad_up)? g2_DU_Counts + 1 : g2_DU_Counts - 1, 0,12);
                 g2.dpad_up = (g2_DU_Counts >= 6);
 
 
@@ -172,7 +169,7 @@ public class KP_DriverCmd_Mecanum extends LinearOpMode {
                     float driveMin = -1;
                     float riserMax = 1;
                     float riserMin = -1;
-                    double riserTarget = 0;
+                    //double riserTarget = 0;
 
               //Simple mapping of controller to test KP bot
 
@@ -195,12 +192,12 @@ public class KP_DriverCmd_Mecanum extends LinearOpMode {
                         rightClamp_Cmd = robot.RIGHTUNCLAMPED;
                     }
                     if (g2.x) {  // Bias to left
-                        leftClamp_Cmd = leftClamp_Cmd   -robot.SERVO_TWEAK;
-                        rightClamp_Cmd = rightClamp_Cmd +robot.SERVO_TWEAK;
+                        leftClamp_Cmd = leftClamp_Cmd   - robot.SERVO_TWEAK;
+                        rightClamp_Cmd = rightClamp_Cmd + robot.SERVO_TWEAK;
                     }
                     if (g2.y) {  // Bias to right
-                        leftClamp_Cmd = leftClamp_Cmd   +robot.SERVO_TWEAK;
-                        rightClamp_Cmd = rightClamp_Cmd -robot.SERVO_TWEAK;
+                        leftClamp_Cmd = leftClamp_Cmd   + robot.SERVO_TWEAK;
+                        rightClamp_Cmd = rightClamp_Cmd - robot.SERVO_TWEAK;
                     }
 
                     if (g2.dpad_up) { // Mostly Clamped
@@ -213,7 +210,6 @@ public class KP_DriverCmd_Mecanum extends LinearOpMode {
                         rightClamp_Cmd = robot.RIGHTTIGHTCLAMPED;
                     }
 
-//
                     //Turtle Mode toggle
                     if ((g1.right_bumper) || (g1.right_trigger > 0)) {  //Turtle
                         turtleScaler = turtleSpeed;
@@ -226,8 +222,11 @@ public class KP_DriverCmd_Mecanum extends LinearOpMode {
                     // the 0,0 point.  Switching to single stick operation ought to be pretty
                     // straightforward, if that's desired.  Using 2 sticks was simpler to
                     // code up in a hurry.
-                    g1.left_stick_y  = (g1.left_stick_y  * g1.left_stick_y  * g1.left_stick_y) / turtleScaler;
-                    g1.right_stick_y = (g1.right_stick_y * g1.right_stick_y * g1.right_stick_y) / turtleScaler;
+                    g1.left_stick_y  = (float)Math.pow((double)g1.left_stick_y, (double)3);
+                    g1.left_stick_y = g1.left_stick_y/turtleScaler;
+
+                    g1.right_stick_y = (float)Math.pow((double)g1.left_stick_y, (double)3);
+                    g1.right_stick_y = g1.right_stick_y / turtleScaler;
 
 
                     // The ONLY place we set the motor power variables. Set them here, and
@@ -242,7 +241,7 @@ public class KP_DriverCmd_Mecanum extends LinearOpMode {
                     // motor commands: Clipped & clamped.
                     leftDriveCmd  = Range.clip(g1.left_stick_y,  driveMin, driveMax);
                     rightDriveCmd = Range.clip(g1.right_stick_y, driveMin, driveMax);
-                    riserCmd      = Range.clip((float)riserCmd,  riserMin, riserMax);
+                    riserCmd      = Range.clip(riserCmd,         riserMin, riserMax);
                 }                    // END NAVIGATION
 
 

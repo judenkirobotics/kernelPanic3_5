@@ -34,27 +34,31 @@ public class Drive2 {
      *  newHeading    - input. Destination heading
      *  turnPwr       - input. -100 to 100, percent power. negative means counterclockwise
      *  turnTime      - input. how long this "state" has been in play
-     * @return pwrSet - multiply the pwrSet by -1 for the starboard motor in the calling routine.
+     * @return mPower - multiply the pwrSet by -1 for the starboard motor in the calling routine.
      *   Note: The gyroturn5 will quit after MAX_TURN_TIME, and will give a "bump" to increase turn
      *   power after BUMP_TIME.  The idea is to juice the power
      */
-    public botMotors gyroTurn5(int startHeading, int currHeading, int newHeading, int turnPwr, float turnTime){
+    public botMotors gyroTurn5(int startH, int currH, int newH, float pwrSet, float turnTime)
+    {
         botMotors mPower = new botMotors();
-        float pwrSet = turnPwr;
-        int accumTurn = Math.abs(startHeading - currHeading);
+        int accumTurn = Math.abs(startH - currH);
         accumTurn = (accumTurn > 360)? (360-accumTurn):accumTurn;
-        int cw = (turnPwr < 0)? -1: 1;
-        int transit = (((currHeading > newHeading) && (cw > 0)) ||
-                ((currHeading < newHeading) && (cw < 0))) ?  360 : 0;
-        int desiredRotation = Math.abs(transit + (cw*newHeading) + ((-1*cw)*currHeading));
+        int cw = (pwrSet < 0)? -1: 1;
+        int transit = (((currH > newH) && (cw > 0)) ||
+                ((currH < newH) && (cw < 0))) ?  360 : 0;
+        int desiredRotation = Math.abs(transit + (cw*newH) + ((-1*cw)*currH));
         desiredRotation = (desiredRotation > 360) ? desiredRotation - 360 : desiredRotation;
         if((accumTurn < desiredRotation) && (turnTime < MAX_TURN_TIME)){
-            pwrSet = (turnTime > BUMP_TIME)? (float)turnPwr: (float)1.0;
+            pwrSet = (turnTime > BUMP_TIME)? pwrSet: (float)1.0;
         }
         else
         {
             pwrSet = 0;
         }
+        mPower.leftFront = pwrSet;
+        mPower.rightFront = pwrSet;
+        mPower.leftRear = pwrSet;
+        mPower.rightRear = pwrSet;
         return mPower;
     }
 
@@ -66,19 +70,6 @@ public class Drive2 {
      * double duration
      * @return - commanded power.  Do this once for each motor
      */
-
-
-    /***********************************************************
-     **          calculate necessary turn amount              **
-     **********************************************************/
-    public static int getNeededTurn(int isNow, int want, int cw) {
-        cw = (cw < 0) ? -1 : 1;
-        int transit = (((isNow > want) && (cw > 0)) ||
-                ((isNow < want) && (cw < 0))) ?  360 : 0;
-        int neededTurn = Math.abs(transit + (cw*want) + ((-1*cw)*isNow));
-        neededTurn = (neededTurn > 360) ? neededTurn - 360 : neededTurn;
-        return (neededTurn);
-    }
 
 
 
