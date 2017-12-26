@@ -13,29 +13,34 @@ public class Drive2 {
     public botMotors crab(Gamepad cx)
     {
         botMotors m = new botMotors();
-        // start with basic left stick, then add crab afterward.
-        float max;
-        float x1 = cx.left_stick_x;
-        float y1 = cx.left_stick_y;
+        float maxDrive;
+        float tempMax;
+        //   Sum the vectors and hope for the best :-)
+        //                 turn=left.x,      fwd=left.y,      crab=right.x
+        m.leftFront  =  cx.left_stick_x + cx.left_stick_y + cx.right_stick_x;
+        m.rightFront = -cx.left_stick_x + cx.left_stick_y - cx.right_stick_x;
+        m.leftRear   =  cx.left_stick_x + cx.left_stick_y - cx.right_stick_x;
+        m.rightRear  = -cx.left_stick_x + cx.left_stick_y + cx.right_stick_x;
 
-        float x2 = cx.right_stick_x;
-        float y2 = cx.right_stick_y;
+        // must keep things proportional when the sum of any x or y > 1
+        tempMax =  Math.max(Math.abs(m.leftFront), Math.abs(m.rightFront));
+        maxDrive = Math.max(Math.abs(m.leftRear),  Math.abs(m.rightRear));
+        maxDrive = Math.max(tempMax, maxDrive);
+        maxDrive = (maxDrive > MOTORMAX) ? maxDrive : MOTORMAX;
 
-        // resulting vectors
-        x1 = x1 + x2;
-        y1 = y1 + y2;
-        max = (Math.max(Math.abs(x1),Math.abs(y1)));
-        if (max >= 1)
-        {
-            x1 = x1/max;
-            y1 = y1/max;
-        }
-        m.leftFront = x1+y1;
-        m.rightFront = x1-y1;
-        m.leftRear = m.rightFront;
-        m.rightRear = m.leftFront;
+        // scale and clip the front motors, then the aft
+        m.leftFront = m.leftFront/maxDrive;
+        m.leftFront = Range.clip(m.leftFront, MOTORMIN, MOTORMAX);
+        m.rightFront = m.rightFront/maxDrive;
+        m.rightFront = Range.clip(m.rightFront, MOTORMIN, MOTORMAX);
+
+        m.leftRear = m.leftRear/maxDrive;
+        m.leftRear = Range.clip(m.leftRear, MOTORMIN, MOTORMAX);
+        m.rightRear = m.rightRear/maxDrive;
+        m.rightRear = Range.clip(m.rightRear, MOTORMIN, MOTORMAX);
 
         return m;
+
     }
 
     public botMotors fwd6(float pwr, long goal, long stageTime){
